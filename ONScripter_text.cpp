@@ -497,12 +497,12 @@ void ONScripter::restoreTextBuffer(SDL_Surface* surface)
 
                 out_text[1] = 0;
 
-                if (i + 1 != current_page->text_count &&
+                /*if (i + 1 != current_page->text_count &&
                     current_page->text[i + 1] != 0x0a &&
                     script_h.enc.getEncoding() == Encoding::CODE_CP932) {
                     out_text[1] = current_page->text[i + 1];
                     i++;
-                }
+                }*/
             }
             drawChar(out_text, &f_info, false, false, surface, &text_info);
         }
