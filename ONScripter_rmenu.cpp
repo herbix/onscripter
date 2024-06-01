@@ -42,16 +42,16 @@
 #define MESSAGE_OK "OK"
 #define MESSAGE_CANCEL "Cancel"
 #else
-#define MESSAGE_SAVE_EXIST "%s%s丂%s寧%s擔%s帪%s暘"
-#define MESSAGE_SAVE_EMPTY "%s%s丂亅亅亅亅亅亅亅亅亅亅亅亅"
-#define MESSAGE_SAVE_CONFIRM "%s%s偵僙乕僽偟傑偡丅傛傠偟偄偱偡偐丠"
-#define MESSAGE_LOAD_CONFIRM "%s%s傪儘乕僪偟傑偡丅傛傠偟偄偱偡偐丠"
-#define MESSAGE_RESET_CONFIRM "儕僙僢僩偟傑偡丅傛傠偟偄偱偡偐丠"
-#define MESSAGE_END_CONFIRM "廔椆偟傑偡丅傛傠偟偄偱偡偐丠"
-#define MESSAGE_YES "偼偄"
-#define MESSAGE_NO "偄偄偊"
-#define MESSAGE_OK "俷俲"
-#define MESSAGE_CANCEL "僉儍儞僙儖"
+#define MESSAGE_SAVE_EXIST "%s%s　%s月%s日%s时%s分"
+#define MESSAGE_SAVE_EMPTY "%s%s　－－－－－－－－－－－－"
+#define MESSAGE_SAVE_CONFIRM "%s保存到%s。确认？"
+#define MESSAGE_LOAD_CONFIRM "%s从%s读取。确认？"
+#define MESSAGE_RESET_CONFIRM "返回主界面。确认？"
+#define MESSAGE_END_CONFIRM "结束游戏。确认？"
+#define MESSAGE_YES "是"
+#define MESSAGE_NO "否"
+#define MESSAGE_OK "确定"
+#define MESSAGE_CANCEL "取消"
 #endif
 
 #ifdef ANDROID

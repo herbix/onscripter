@@ -45,9 +45,7 @@ public:
     size_t getFileLength(const char* file_name);
     size_t getFile(const char* file_name, unsigned char* buffer, int* location = NULL);
 
-    static void convertFromSJISToEUC(char* buf);
-    static void convertFromSJISToUTF8(char* dst_buf, const char* src_buf);
-    static void convertFromUTF8ToSJIS(char* dst_buf, const char* src_buf);
+    static void convertFromGBKToUTF8( char *dst_buf, const char *src_buf );
 
 protected:
     char* file_full_path;

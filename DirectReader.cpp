@@ -28,10 +28,10 @@
 #endif
 
 #define IS_TWO_BYTE(x) \
-    (((x)&0xe0) == 0xe0 || ((x)&0xe0) == 0x80)
+        ( ( (unsigned char)(x) > (unsigned char)0x80 ) && \
+          ( (unsigned char)(x) != (unsigned char)0xff ) )
+extern unsigned short convGBK2UTF16( unsigned short in );
 
-extern unsigned short convSJIS2UTF16(unsigned short in);
-extern unsigned short convUTF162SJIS(unsigned short in);
 extern int convUTF16ToUTF8(unsigned char dst[4], unsigned short src);
 extern unsigned short convUTF8ToUTF16(const char** src);
 
@@ -310,12 +310,10 @@ FILE* DirectReader::getFileHandle(const char* file_name, int& compression_type, 
         if ((unsigned char)capital_name[i] > 0x80) i++;
     }
 
-#if defined(UTF8_FILESYSTEM)
-    convertFromSJISToUTF8(capital_name_tmp, capital_name);
-    strcpy(capital_name, capital_name_tmp);
-    len = strlen(capital_name);
-#elif defined(LINUX)
-    convertFromSJISToEUC(capital_name);
+#if defined(UTF8_FILESYSTEM) || defined(LINUX)
+    convertFromGBKToUTF8( capital_name_tmp, capital_name );
+    strcpy( capital_name, capital_name_tmp );
+    len = strlen( capital_name );
 #endif
 
     *length = 0;
@@ -374,66 +372,22 @@ size_t DirectReader::getFile(const char* file_name, unsigned char* buffer, int* 
     return total;
 }
 
-void DirectReader::convertFromSJISToEUC(char* buf)
-{
-    int i = 0;
-    while (buf[i]) {
-        if ((unsigned char)buf[i] > 0x80) {
-            unsigned char c1, c2;
-            c1 = buf[i];
-            c2 = buf[i + 1];
 
-            c1 -= (c1 <= 0x9f) ? 0x71 : 0xb1;
-            c1 = c1 * 2 + 1;
-            if (c2 > 0x9e) {
-                c2 -= 0x7e;
-                c1++;
-            }
-            else if (c2 >= 0x80) {
-                c2 -= 0x20;
-            }
-            else {
-                c2 -= 0x1f;
-            }
-
-            buf[i] = c1 | 0x80;
-            buf[i + 1] = c2 | 0x80;
-            i++;
-        }
-        i++;
-    }
-}
-
-void DirectReader::convertFromSJISToUTF8(char* dst_buf, const char* src_buf)
+void DirectReader::convertFromGBKToUTF8( char *dst_buf, const char *src_buf )
 {
     int i, c;
     unsigned short unicode;
     unsigned char utf8_buf[4];
-
-    while (*src_buf) {
-        if (IS_TWO_BYTE(*src_buf)) {
+    
+    while( *src_buf ) {
+        if( IS_TWO_BYTE(*src_buf) ) {
             unsigned short index = *(unsigned char*)src_buf++;
             index = index << 8 | (*(unsigned char*)src_buf++);
-            unicode = convSJIS2UTF16(index);
-            c = convUTF16ToUTF8(utf8_buf, unicode);
-            for (i = 0; i < c; i++)
+            unicode = convGBK2UTF16( index );
+            c = convUTF16ToUTF8( utf8_buf, unicode );
+            for( i=0 ; i<c ; i++ ) {
                 *dst_buf++ = utf8_buf[i];
-        }
-        else {
-            *dst_buf++ = *src_buf++;
-        }
-    }
-    *dst_buf++ = 0;
-}
-
-void DirectReader::convertFromUTF8ToSJIS(char* dst_buf, const char* src_buf)
-{
-    while (*src_buf) {
-        if (*src_buf & 0x80) {
-            unsigned short unicode = convUTF8ToUTF16(&src_buf);
-            unsigned short sjis = convUTF162SJIS(unicode);
-            *dst_buf++ = (sjis >> 8);
-            *dst_buf++ = sjis & 0xff;
+            }
         }
         else {
             *dst_buf++ = *src_buf++;

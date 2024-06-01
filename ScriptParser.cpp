@@ -32,9 +32,9 @@ extern "C" {
 #define VERSION_STR1 "ONScripter"
 #define VERSION_STR2 "Copyright (C) 2001-2020 Studio O.G.A. All Rights Reserved."
 
-#define DEFAULT_SAVE_MENU_NAME "亙僙乕僽亜"
-#define DEFAULT_LOAD_MENU_NAME "亙儘乕僪亜"
-#define DEFAULT_SAVE_ITEM_NAME "偟偍傝"
+#define DEFAULT_SAVE_MENU_NAME "保存"
+#define DEFAULT_LOAD_MENU_NAME "读取"
+#define DEFAULT_SAVE_ITEM_NAME "进度"
 
 #define DEFAULT_TEXT_SPEED_LOW 40
 #define DEFAULT_TEXT_SPEED_MIDDLE 20
@@ -42,7 +42,7 @@ extern "C" {
 
 #define MAX_PAGE_LIST 16
 
-extern void initSJIS2UTF16();
+extern void initGBK2UTF16();
 
 ScriptParser::ScriptParser()
 {
@@ -86,7 +86,7 @@ ScriptParser::ScriptParser()
     for (i = 0; i < MENUSELECTVOICE_NUM; i++)
         menuselectvoice_file_name[i] = NULL;
 
-    initSJIS2UTF16();
+    initGBK2UTF16();
 
     start_kinsoku = end_kinsoku = NULL;
     num_start_kinsoku = num_end_kinsoku = 0;
@@ -649,7 +649,7 @@ void ScriptParser::setStr(char** dst, const char* src, int num, bool to_utf8)
             num = strlen(src);
             if (to_utf8 && script_h.enc.getEncoding() == Encoding::CODE_UTF8) {
                 char* tmp_buf = new char[num * 2 + 1];
-                DirectReader::convertFromSJISToUTF8(tmp_buf, src);
+                DirectReader::convertFromGBKToUTF8(tmp_buf, src);
                 num = strlen(tmp_buf);
                 *dst = new char[num + 1];
                 strcpy(*dst, tmp_buf);

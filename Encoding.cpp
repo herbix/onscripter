@@ -23,7 +23,11 @@
 
 #include "Encoding.h"
 
-extern unsigned short convSJIS2UTF16(unsigned short in);
+#define IS_TWO_BYTE(x) \
+        ( ( (unsigned char)(x) > (unsigned char)0x80 ) && \
+          ( (unsigned char)(x) != (unsigned char)0xff ) )
+
+extern unsigned short convGBK2UTF16(unsigned short in);
 extern unsigned short convUTF8ToUTF16(const char** src);
 
 Encoding::Encoding()
@@ -45,7 +49,7 @@ int Encoding::getBytes(unsigned char ch, int code)
     if (code == -1) code = this->code;
 
     if (code == CODE_CP932) {
-        if ((ch & 0xe0) == 0xe0 || (ch & 0xe0) == 0x80) return 2;
+        if (IS_TWO_BYTE(ch)) return 2;
     }
     else {
         if (0 <= ch && ch < 0x80) return 1;
@@ -86,10 +90,10 @@ unsigned short Encoding::getUTF16(const char* text, int code)
     if (code == -1) code = this->code;
 
     if (code == CODE_CP932) {
-        if ((text[0] & 0xe0) == 0xe0 || (text[0] & 0xe0) == 0x80) {
+        if (IS_TWO_BYTE(text[0])) {
             unsigned index = ((unsigned char*)text)[0];
             index = index << 8 | ((unsigned char*)text)[1];
-            unicode = convSJIS2UTF16(index);
+            unicode = convGBK2UTF16(index);
         }
         else {
             if ((text[0] & 0xe0) == 0xa0 || (text[0] & 0xe0) == 0xc0)

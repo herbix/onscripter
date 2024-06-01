@@ -37,7 +37,6 @@
 extern SDL_TimerID timer_bgmfade_id;
 extern "C" Uint32 SDLCALL bgmfadeCallback( Uint32 interval, void *param );
 extern "C" void smpegCallback();
-extern unsigned short convUTF162SJIS(unsigned short in);
     
 #define CONTINUOUS_PLAY
 
@@ -3450,39 +3449,17 @@ int ONScripter::captionCommand()
     size_t len = strlen(buf);
 
     char *buf2 = new char[len*3+1];
-#if defined(MACOSX) && (SDL_COMPILEDVERSION >= 1208) /* convert sjis to utf-8 */
-    DirectReader::convertFromSJISToUTF8(buf2, buf);
+
+
+#if defined(MACOSX) && (SDL_COMPILEDVERSION >= 1208)
+    DirectReader::convertFromGBKToUTF8( buf2, buf );
 #elif defined(LINUX) || (defined(WIN32) && defined(UTF8_CAPTION))
-#if defined(UTF8_CAPTION)
     if (script_h.enc.getEncoding() == Encoding::CODE_UTF8)
         strcpy(buf2, buf);
     else
-        DirectReader::convertFromSJISToUTF8(buf2, buf);
+        DirectReader::convertFromGBKToUTF8(buf2, buf);
 #else
-    if (script_h.enc.getEncoding() == Encoding::CODE_UTF8){
-        int c = 0;
-        while(buf[0] != 0){
-            int n = script_h.enc.getBytes(buf[0]);
-            unsigned short unicode = script_h.enc.getUTF16(buf);
-            if (n == 1){
-                buf2[c++] = unicode;
-            }
-            else{
-                unsigned short sjis = convUTF162SJIS(unicode);
-                buf2[c++] = sjis >> 8;
-                buf2[c++] = sjis & 0xff;
-            }
-            buf += n;
-        }
-        buf2[c] = 0;
-    }
-    else{
-        strcpy(buf2, buf);
-    }
-    DirectReader::convertFromSJISToEUC(buf2);
-#endif
-#else
-    strcpy(buf2, buf);
+    strcpy( buf2, buf );
 #endif
     
     setStr( &wm_title_string, buf2 );

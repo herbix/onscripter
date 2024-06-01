@@ -1,5 +1,5 @@
 {
-    "files.encoding": "shiftjis",
+    "files.encoding": "gbk",
     "files.exclude": {
         "*.o": true
     }

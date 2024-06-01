@@ -23,19 +23,28 @@
 
 #include "ONScripter.h"
 
-extern unsigned short convSJIS2UTF16(unsigned short in);
+extern unsigned short convGBK2UTF16( unsigned short in );
 
-#define IS_ROTATION_REQUIRED(x)                                          \
-    (!IS_TWO_BYTE(*(x)) ||                                               \
-     (*(x) == (char)0x81 && *((x) + 1) == (char)0x50) ||                 \
-     (*(x) == (char)0x81 && *((x) + 1) == (char)0x51) ||                 \
-     (*(x) == (char)0x81 && *((x) + 1) >= 0x5b && *((x) + 1) <= 0x5d) || \
-     (*(x) == (char)0x81 && *((x) + 1) >= 0x60 && *((x) + 1) <= 0x64) || \
-     (*(x) == (char)0x81 && *((x) + 1) >= 0x69 && *((x) + 1) <= 0x7a) || \
-     (*(x) == (char)0x81 && *((x) + 1) == (char)0x80))
+#define IS_ROTATION_REQUIRED(x) \
+    ( ( !IS_TWO_BYTE(*(x))) || \
+        ( *(x) == (unsigned char)0xa1 && *((x)+1) >= 0xb4 && *((x)+1) <= 0xbf ) || \
+        ( *(x) == (unsigned char)0xa3 && *((x)+1) >= 0xfc && *((x)+1) <= 0xfe ) || \
+        ( *(x) == (unsigned char)0xa1 && *((x)+1) == (unsigned char)0xab ) || \
+        ( *(x) == (unsigned char)0xa1 && *((x)+1) == (unsigned char)0xce ) || \
+        ( *(x) == (unsigned char)0xa1 && *((x)+1) == (unsigned char)0xad ) || \
+        ( *(x) == (unsigned char)0xa1 && *((x)+1) == (unsigned char)0xc2 ) || \
+        ( *(x) == (unsigned char)0xa3 && *((x)+1) == (unsigned char)0xdf ) || \
+        ( *(x) == (unsigned char)0xa3 && *((x)+1) == (unsigned char)0xa8 ) || \
+        ( *(x) == (unsigned char)0xa8 && *((x)+1) == (unsigned char)0x44 ) || \
+        ( *(x) == (unsigned char)0xa8 && *((x)+1) == (unsigned char)0x45 ) || \
+        ( *(x) == (unsigned char)0xa9 && *((x)+1) == (unsigned char)0x5c ) || \
+        ( *(x) == (unsigned char)0xa9 && *((x)+1) == (unsigned char)0x60 ) )
 
 #define IS_TRANSLATION_REQUIRED(x) \
-    (*(x) == (char)0x81 && *((x) + 1) >= 0x41 && *((x) + 1) <= 0x44)
+    ( ( *(x) == (unsigned char)0xa1 && *((x)+1) == (unsigned char)0xa2 )   || \
+        ( *(x) == (unsigned char)0xa1 && *((x)+1) == (unsigned char)0xa3 ) || \
+        ( *(x) == (unsigned char)0xa3 && *((x)+1) == (unsigned char)0xac ) || \
+        ( *(x) == (unsigned char)0xa3 && *((x)+1) == (unsigned char)0xae ) )
 
 void ONScripter::shiftHalfPixelX(SDL_Surface* surface)
 {
@@ -197,8 +206,8 @@ void ONScripter::drawChar(char* text, FontInfo* info, bool flush_flag, bool look
         for (int i = 0; i < indent_offset; i++) {
             if (lookback_flag) {
                 if (script_h.enc.getEncoding() == Encoding::CODE_CP932) {
-                    current_page->add(0x81);
-                    current_page->add(0x40);
+                    current_page->add( 0xc2 );
+                    current_page->add( 0xa1 );
                 }
                 else {
                     current_page->add(0xe3);
@@ -380,11 +389,7 @@ void ONScripter::drawString(const char* str, uchar3 color, FontInfo* info, bool 
             if (checkLigatureLineBreak(str, info))
                 info->newLine();
             text[0] = *str++;
-            if (*str && *str != 0x0a && pack_hankaku &&
-                script_h.enc.getEncoding() == Encoding::CODE_CP932)
-                text[1] = *str++;
-            else
-                text[1] = 0;
+            text[1] = 0;
             drawChar(text, info, false, false, surface, cache_info);
         }
     }
@@ -747,7 +752,7 @@ int ONScripter::textCommand()
     char* buf = script_h.getStringBuffer();
 
     bool tag_flag = true;
-    unsigned short unicode = script_h.enc.getUTF16("Åy", Encoding::CODE_CP932);
+    unsigned short unicode = script_h.enc.getUTF16("°æ", Encoding::CODE_CP932);
     int n = script_h.enc.getBytes(buf[string_buffer_offset]);
     if (buf[string_buffer_offset] == '[')
         string_buffer_offset++;
@@ -760,7 +765,7 @@ int ONScripter::textCommand()
     int start_offset = string_buffer_offset;
     int end_offset = start_offset;
     while (tag_flag && buf[string_buffer_offset]) {
-        unsigned short unicode = script_h.enc.getUTF16("Åz", Encoding::CODE_CP932);
+        unsigned short unicode = script_h.enc.getUTF16("°ø", Encoding::CODE_CP932);
         int n = script_h.enc.getBytes(buf[string_buffer_offset]);
         if (zenkakko_flag &&
             script_h.enc.getUTF16(buf + string_buffer_offset) == unicode) {
@@ -938,8 +943,8 @@ bool ONScripter::processText()
             sentence_font.newLine();
             for (int i = 0; i < indent_offset; i++) {
                 if (script_h.enc.getEncoding() == Encoding::CODE_CP932) {
-                    current_page->add(0x81);
-                    current_page->add(0x40);
+                    current_page->add( 0xc2 );
+                    current_page->add( 0xa1 );
                 }
                 else {
                     current_page->add(0xe3);
@@ -1191,7 +1196,11 @@ bool ONScripter::processText()
         if (script_h.getStringBuffer()[string_buffer_offset + 1] &&
             !(script_h.getEndStatus() & ScriptHandler::END_1BYTE_CHAR) &&
             script_h.enc.getEncoding() == Encoding::CODE_CP932) {
-            out_text[1] = script_h.getStringBuffer()[string_buffer_offset + 1];
+            if( IS_TWO_BYTE(out_text[0]) ) {
+                out_text[1] = script_h.getStringBuffer()[ string_buffer_offset + 1 ];
+            } else {
+                out_text[1] = 0;
+            }
             drawChar(out_text, &sentence_font, flush_flag, true, accumulation_surface, &text_info);
             num_chars_in_sentence++;
         }
@@ -1211,7 +1220,8 @@ bool ONScripter::processText()
                 waitEvent(sentence_font.wait_time);
         }
 
-        if (script_h.getStringBuffer()[string_buffer_offset + 1] &&
+        if (IS_TWO_BYTE(ch) &&
+            script_h.getStringBuffer()[string_buffer_offset + 1] &&
             !(script_h.getEndStatus() & ScriptHandler::END_1BYTE_CHAR) &&
             script_h.enc.getEncoding() == Encoding::CODE_CP932)
             string_buffer_offset++;
